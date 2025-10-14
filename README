@@ -1,0 +1,58 @@
+SimuVox is a physics-based synthesizer of normal and disorder voices. It has been written as a set of Python 3.6 scripts.
+  
+  
+INSTRUCTIONS
+
+Run the simuvox.py script located inside the SimuVox folder. The main control window will open.
+
+a. Main control window
+
+- The button "Articulatory model" opens the articulatory window (described below) where you can set the vocal tract configuration. The default configuration is for a male adult /a/.
+
+- The source parameters set the biomechanical configuration of the vocal folds:
+
+  "Lung press": lung air pressure.
+  "Mass": mass of the vocal fold tissues.
+  "Damp": damping coefficient of the vocal folds. This parameter is related to the amount of energy spent to keep the fold oscillation.
+  "Stiff": vocal fold stiffness. The stiffer the tissues, the higher the oscillation frequency.
+  "Delay": time delay of the superficial mucosal wave to travel along half the glottal height. The larger the delay, the more wave-like the vocal fold motion and the easier the oscillation. However, the theoretical upper limit is 1/(2*f0), where f0 is the fundamental frequency.    
+  "Abduction": initial separation between the vocal folds
+  "Glot length": glottal length (anterior-posterior direction)
+  "Glot depth":  glottal depth (or height, in the airflow direction)
+
+- In the simulation frame, the "Pitch decr" switch sets a 10% pitch decrease during the simulation
+
+- Disorders frame:
+  
+  "Asymmetry" denotes the ratio of the stifness coefficent of the left vocal vs. the right vocal fold. A value of 1 is perfect symmetry, and values larger or smaller than 1 mean that the left vocal fold is stiffer or laxer, respectively, than the right one.
+
+  "Wow", "tremor" and "jitter" set an irregularity on the cycle length of the vocal fold oscillation. Jitter produces the perception of roughness.
+
+  "Asp noise" is noise caused by the airflow (breathiness); e.g., as consequence of a glottal chink.
+
+- The "Run" button starts the simulation with the selected parameters. In a Windows 10 platform with an i5 Intel processor, it takes around 6 seconds to produce a 1.5 second simulation. When the simulation ends, a results window will open.   
+
+b. Results window
+
+The left plots, from top to bottom, are the vocal fold displacement (blue: right fold, green: left fold), glottal area and glottal flow, respectively. The right plots are the acoustic output and its spectrogram. 
+
+To zoom in, click on the magnifying glass button (top left) and select a region. To reset the zoom, click on the home button. 
+
+To save as a png file, click on the floppy disk button. 
+
+Play the sound or save it as a wav file using the buttons at the bottom right.
+ 
+c. Articulatory model window
+
+Set the vocal tract configuration by using the sliders or the presets, the male/female switch and/or the preset vowels. Note that the male/female configuration of the vocal tract is independent of the male/female configuration of the vocal folds (in the main control window).
+
+In the formants frame, the "Show" switch will show the formants as the vocal tract shape is modified. However, the formant calculation makes the graphic interaction slower and therefore is off by default.
+
+
+CONTACT
+
+Send questions, requests, suggestions for improvements, offers of help and collaboration, and any other feedback to simuvox@gmail.com
+
+This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+Copyright 2017 Jorge C. Lucero. All rights reserved.
