@@ -26,7 +26,7 @@ class MainWindow(tk.Frame):
 
     def __init__(self, root, *args, **kwargs):
 
-        style.use("seaborn-pastel")
+        style.use("seaborn-v0_8")
 
         self.root = root
         
