@@ -57,7 +57,7 @@ engine = SimuVoxEngine()
 class SynthesisRequest(BaseModel):
     """Request schema for voice synthesis"""
     # Source parameters
-    lung_pressure: float = Field(default=500.0, ge=0, le=200, description="Lung pressure (Pa)")
+    lung_pressure: float = Field(default=500.0, ge=0, le=2000, description="Lung pressure (Pa)")
     mass: float = Field(default=0.2, ge=0.01, le=1.0, description="Vocal fold mass (g)")
     damping: float = Field(default=0.025, ge=0.001, le=0.1, description="Damping coefficient (N·s/m)")
     stiffness: float = Field(default=90.0, ge=10, le=300, description="Stiffness (N/m)")
