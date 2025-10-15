@@ -254,7 +254,7 @@ async def synthesize_voice(request: SynthesisRequest):
                 vocal_fold_left=vf_left.tolist(),
                 vocal_fold_right=vf_right.tolist(),
                 acoustic_pressure=(result.audio[::ds*10] / 10).tolist(),
-                spectrogram=ims_normalized.T.tolist(),  # Send normalized spectrogram
+                spectrogram=ims_normalized.tolist(),  # DON'T transpose - send as is
                 spectrogram_freq_max=fm1/1000.0
             )
         )
