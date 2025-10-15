@@ -212,7 +212,7 @@ async def synthesize_voice(request: SynthesisRequest):
         audio_base64 = base64.b64encode(audio_bytes.getvalue()).decode()
         
         # Downsample time series for efficient transmission
-        # ds = request.downsample_factor
+        ds = request.downsample_factor
         # time_ds = result.time[::ds]
         
         time_ds = result.time
