@@ -210,24 +210,24 @@ async def synthesize_voice(request: SynthesisRequest):
         
         # Encode as base64
         audio_base64 = base64.b64encode(audio_bytes.getvalue()).decode()
-        
+                
         # Downsample time series for efficient transmission
         ds = request.downsample_factor
-        # time_ds = result.time[::ds]
-        
-        time_ds = result.time
-        
+        time_ds = result.time[::ds]
+
         # Extract vocal fold displacements
         vf_left = -result.vocal_fold_displacement[::ds, 0]
         vf_right = result.vocal_fold_displacement[::ds, 1]
-        
+
+        # Compute spectrogram - NO downsampling
         ims, fm1 = spg.get_ims(result.audio)
         vv = np.max(ims)
-        ims_ds = ims.clip(min=vv-50.)
-        
-        # Downsample spectrogram for web transmission (keep every 5th point)
-        # ims_ds = ims[::5, ::2]
-        
+        ims_full = ims.clip(min=vv-50.)
+
+        print(f"Spectrogram shape: {ims_full.shape}")
+        print(f"Max frequency: {fm1} Hz")
+        print(f"Duration: {len(result.audio) / result.sample_rate} s")
+
         return SynthesisResponse(
             success=True,
             measures=AcousticMeasures(
@@ -248,7 +248,7 @@ async def synthesize_voice(request: SynthesisRequest):
                 vocal_fold_left=vf_left.tolist(),
                 vocal_fold_right=vf_right.tolist(),
                 acoustic_pressure=(result.audio[::ds*10] / 10).tolist(),
-                spectrogram=ims_ds.T.tolist(),  # Transpose for web display
+                spectrogram=ims_full.T.tolist(),  # Send FULL spectrogram
                 spectrogram_freq_max=fm1/1000.0  # Convert to kHz
             )
         )
