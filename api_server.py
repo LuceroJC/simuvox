@@ -219,14 +219,20 @@ async def synthesize_voice(request: SynthesisRequest):
         vf_left = -result.vocal_fold_displacement[::ds, 0]
         vf_right = result.vocal_fold_displacement[::ds, 1]
 
-        # Compute spectrogram - NO downsampling
+         # Compute spectrogram - NO downsampling
         ims, fm1 = spg.get_ims(result.audio)
         vv = np.max(ims)
         ims_full = ims.clip(min=vv-50.)
 
+        # Normalize to 0-50 range for better color mapping
+        ims_normalized = ims_full - (vv - 50.)
+
         print(f"Spectrogram shape: {ims_full.shape}")
         print(f"Max frequency: {fm1} Hz")
         print(f"Duration: {len(result.audio) / result.sample_rate} s")
+        print(f"Spectrogram raw range: {ims.min():.1f} to {ims.max():.1f}")
+        print(f"After clipping: {ims_full.min():.1f} to {ims_full.max():.1f}")
+        print(f"After normalization: {ims_normalized.min():.1f} to {ims_normalized.max():.1f}")
 
         return SynthesisResponse(
             success=True,
@@ -248,8 +254,8 @@ async def synthesize_voice(request: SynthesisRequest):
                 vocal_fold_left=vf_left.tolist(),
                 vocal_fold_right=vf_right.tolist(),
                 acoustic_pressure=(result.audio[::ds*10] / 10).tolist(),
-                spectrogram=ims_full.T.tolist(),  # Send FULL spectrogram
-                spectrogram_freq_max=fm1/1000.0  # Convert to kHz
+                spectrogram=ims_normalized.T.tolist(),  # Send normalized spectrogram
+                spectrogram_freq_max=fm1/1000.0
             )
         )
         
