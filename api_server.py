@@ -102,7 +102,6 @@ class AcousticMeasures(BaseModel):
     spectral_balance: float = Field(description="Spectral balance (Hz)")
     spectral_ratio: float = Field(description="Spectral ratio (dB)")
 
-
 class WaveformData(BaseModel):
     """Time series data for plotting"""
     time: List[float] = Field(description="Time vector (s)")
@@ -110,7 +109,10 @@ class WaveformData(BaseModel):
     glottal_flow: List[float] = Field(description="Glottal flow (cm³/s)")
     vocal_fold_left: List[float] = Field(description="Left vocal fold displacement (cm)")
     vocal_fold_right: List[float] = Field(description="Right vocal fold displacement (cm)")
-    acoustic_pressure: List[float] = Field(description="Acoustic pressure (Pa)")  # ADD THIS
+    acoustic_pressure: List[float] = Field(description="Acoustic pressure (Pa)")
+    # Add spectrogram data:
+    spectrogram: Optional[List[List[float]]] = Field(None, description="Spectrogram matrix")
+    spectrogram_freq_max: Optional[float] = Field(None, description="Max frequency for spectrogram (kHz)")
 
 class SynthesisResponse(BaseModel):
     """Response schema with all results"""
@@ -230,13 +232,24 @@ async def synthesize_voice(request: SynthesisRequest):
             audio_base64=audio_base64,
             sample_rate=result.sample_rate,
             duration_actual=len(result.audio) / result.sample_rate,
+            
+            # Compute spectrogram
+            ims, fm1 = spg.get_ims(result.audio)
+            vv = np.max(ims)
+            ims = ims.clip(min=vv-50.)
+
+            # Downsample spectrogram for web transmission (keep every 5th point)
+            ims_ds = ims[::5, ::2]
+
             waveforms=WaveformData(
                 time=time_ds.tolist(),
                 glottal_area=result.glottal_area[::ds].tolist(),
                 glottal_flow=(result.glottal_flow[::ds] / 1000).tolist(),
                 vocal_fold_left=vf_left.tolist(),
                 vocal_fold_right=vf_right.tolist(),
-                acoustic_pressure=(result.audio[::ds*10] / 10).tolist()  # ADD THIS - downsample more for web
+                acoustic_pressure=(result.audio[::ds*10] / 10).tolist(),
+                spectrogram=ims_ds.T.tolist(),  # Transpose for web display
+                spectrogram_freq_max=fm1/1000.0  # Convert to kHz
             )
         )
         
