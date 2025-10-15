@@ -220,7 +220,7 @@ async def synthesize_voice(request: SynthesisRequest):
         vf_right = result.vocal_fold_displacement[::ds, 1]
 
         # Compute spectrogram - NO downsampling
-        ims, fm1 = spg.get_ims(result.audio)
+        ims, fm1 = spg.get_ims(result.audio, window_length=0.040, overlap=0.90)
         vv = np.max(ims)
         ims_full = ims.clip(min=vv-50.)
 
