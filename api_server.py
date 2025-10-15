@@ -219,14 +219,12 @@ async def synthesize_voice(request: SynthesisRequest):
         vf_left = -result.vocal_fold_displacement[::ds, 0]
         vf_right = result.vocal_fold_displacement[::ds, 1]
         
-        # Compute spectrogram (import spec001 at the top of file first!)
-        import spec001 as spg
         ims, fm1 = spg.get_ims(result.audio)
         vv = np.max(ims)
-        ims = ims.clip(min=vv-50.)
+        ims_ds = ims.clip(min=vv-50.)
         
         # Downsample spectrogram for web transmission (keep every 5th point)
-        ims_ds = ims[::5, ::2]
+        # ims_ds = ims[::5, ::2]
         
         return SynthesisResponse(
             success=True,
