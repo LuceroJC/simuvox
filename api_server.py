@@ -32,7 +32,7 @@ import base64
 import io
 import wave
 from typing import List, Optional
-
+import spec001 as spg
 from simuvox_api import SimuVoxEngine, VoiceParameters
 
 app = FastAPI(
