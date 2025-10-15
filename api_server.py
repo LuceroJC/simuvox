@@ -110,7 +110,7 @@ class WaveformData(BaseModel):
     glottal_flow: List[float] = Field(description="Glottal flow (cm³/s)")
     vocal_fold_left: List[float] = Field(description="Left vocal fold displacement (cm)")
     vocal_fold_right: List[float] = Field(description="Right vocal fold displacement (cm)")
-
+    acoustic_pressure: List[float] = Field(description="Acoustic pressure (Pa)")  # ADD THIS
 
 class SynthesisResponse(BaseModel):
     """Response schema with all results"""
@@ -233,9 +233,10 @@ async def synthesize_voice(request: SynthesisRequest):
             waveforms=WaveformData(
                 time=time_ds.tolist(),
                 glottal_area=result.glottal_area[::ds].tolist(),
-                glottal_flow=(result.glottal_flow[::ds] / 1000).tolist(),  # Convert to dm³/s
+                glottal_flow=(result.glottal_flow[::ds] / 1000).tolist(),
                 vocal_fold_left=vf_left.tolist(),
-                vocal_fold_right=vf_right.tolist()
+                vocal_fold_right=vf_right.tolist(),
+                acoustic_pressure=(result.audio[::ds*10] / 10).tolist()  # ADD THIS - downsample more for web
             )
         )
         
