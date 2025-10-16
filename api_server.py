@@ -250,14 +250,14 @@ async def synthesize_voice(request: SynthesisRequest):
             audio_base64=audio_base64,
             sample_rate=result.sample_rate,
             duration_actual=len(result.audio) / result.sample_rate,
-            waveforms=WaveformData(
+             waveforms=WaveformData(
                 time=time_ds.tolist(),
                 glottal_area=result.glottal_area[::ds].tolist(),
                 glottal_flow=(result.glottal_flow[::ds] / 1000).tolist(),
                 vocal_fold_left=vf_left.tolist(),
                 vocal_fold_right=vf_right.tolist(),
-                acoustic_pressure=(result.audio[::ds*10] / 10).tolist(),
-                spectrogram=ims_transposed.tolist(),  # NOW transpose
+                acoustic_pressure=(result.audio[::ds] / 10).tolist(), 
+                spectrogram=ims_transposed.tolist(),
                 spectrogram_freq_max=fm1/1000.0
             )
         )
