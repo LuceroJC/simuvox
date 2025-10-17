@@ -4,24 +4,6 @@ FastAPI server for SimuVox - Web API for PhonaLab
 Run with: uvicorn api_server:app --reload
 Access at: http://localhost:8000
 API docs: http://localhost:8000/docs
-
-Example usage from JavaScript:
-```javascript
-const response = await fetch('http://localhost:8000/api/synthesize', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-        gender: "Female",
-        jitter: 2.5,
-        duration: 1.5
-    })
-});
-const result = await response.json();
-console.log(`F0: ${result.f0} Hz`);
-// Play audio
-const audio = new Audio(`data:audio/wav;base64,${result.audio_base64}`);
-audio.play();
-```
 """
 
 from fastapi import FastAPI, HTTPException
@@ -298,20 +280,18 @@ async def get_presets(gender: str):
 @app.get("/api/vowels")
 async def list_vowels():
     """List available vocal tract configurations (vowels)"""
-    # In production, scan the vocaltracts directory
-    return {
-        "vowels": ["aa", "ae", "ah", "ao", "eh", "er", "ih", "iy", "uh", "uw"],
-        "default": "aa"
-    }
-
-@app.get("/api/vowels")
-async def list_vowels():
-    """List available vocal tract configurations (vowels)"""
-    import config_lam as cfl
-    return {
-        "vowels": cfl.Param.VOWELCODE,
-        "default": "aa"
-    }
+    try:
+        import config_lam as cfl
+        return {
+            "vowels": cfl.Param.VOWELCODE,
+            "default": "aa"
+        }
+    except Exception as e:
+        # Fallback if config_lam not available
+        return {
+            "vowels": ["aa", "ae", "ah", "ao", "eh", "er", "ih", "iy", "uh", "uw", "iw", "ew", "oe"],
+            "default": "aa"
+        }
 
 
 @app.get("/api/vowel/{vowel_code}")
@@ -323,49 +303,64 @@ async def get_vowel_data(vowel_code: str):
     - area_function: {distance: [array], area: [array]}
     - formants: {f1, f2, f3} in Hz
     """
-    import config_lam as cfl
-    import config as cfg
-    import lam
-    
-    # Find vowel index
     try:
-        vowel_idx = cfl.Param.VOWELCODE.index(vowel_code)
-    except ValueError:
-        raise HTTPException(status_code=404, detail=f"Vowel '{vowel_code}' not found")
-    
-    # Get control parameters for this vowel
-    pa = cfl.Param.VOWELPAR[vowel_idx, :]
-    
-    # Create vocal tract model (without GUI)
-    class DummyTk:
-        def title(self, s): pass
-    
-    dummy_tk = DummyTk()
-    art = lam.Lam(dummy_tk)
-    
-    # Compute vocal tract
-    art.compute_vectors(pa)
-    art.vect_projection()
-    art.sagittal_to_area()
-    art.make_tubes()
-    art.get_formants()
-    
-    # Extract area function for plotting
-    distance = np.cumsum(art.af[:, 0]) - art.af[:, 0] / 2
-    area = art.af[:, 1]
-    
-    return {
-        "vowel": vowel_code,
-        "area_function": {
-            "distance": distance.tolist(),
-            "area": area.tolist()
-        },
-        "formants": {
-            "f1": float(art.res_f[0]),
-            "f2": float(art.res_f[1]),
-            "f3": float(art.res_f[2])
+        import config_lam as cfl
+        
+        # Find vowel index
+        try:
+            vowel_idx = cfl.Param.VOWELCODE.index(vowel_code)
+        except ValueError:
+            raise HTTPException(status_code=404, detail=f"Vowel '{vowel_code}' not found")
+        
+        # Get control parameters for this vowel
+        pa = cfl.Param.VOWELPAR[vowel_idx, :]
+        
+        # Import lam module for vocal tract computation
+        import lam
+        
+        # Create a minimal dummy object for tkinter requirement
+        class DummyTk:
+            def title(self, s): pass
+        
+        # Create vocal tract model
+        dummy_tk = DummyTk()
+        art = lam.Lam(dummy_tk)
+        
+        # Compute vocal tract
+        art.compute_vectors(pa)
+        art.vect_projection()
+        art.sagittal_to_area()
+        art.make_tubes()
+        art.get_formants()
+        
+        # Extract area function for plotting
+        distance = np.cumsum(art.af[:, 0]) - art.af[:, 0] / 2
+        area = art.af[:, 1]
+        
+        return {
+            "vowel": vowel_code,
+            "area_function": {
+                "distance": distance.tolist(),
+                "area": area.tolist()
+            },
+            "formants": {
+                "f1": float(art.res_f[0]),
+                "f2": float(art.res_f[1]),
+                "f3": float(art.res_f[2])
+            }
         }
-    }
+        
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503, 
+            detail=f"Vocal tract module not available: {str(e)}"
+        )
+    except Exception as e:
+        print(f"Error computing vowel data: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
